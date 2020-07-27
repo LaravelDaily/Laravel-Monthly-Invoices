@@ -42,6 +42,11 @@ class Student extends Model
         'deleted_at',
     ];
 
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
     /**
      * @param DateTimeInterface $date
      * @return string

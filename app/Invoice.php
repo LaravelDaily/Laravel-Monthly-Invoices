@@ -11,6 +11,11 @@ class Invoice extends Model
 {
     use SoftDeletes;
 
+    /**
+     * folder to save invoices
+     */
+    public const FOLDER = 'invoices';
+
     public $table = 'invoices';
 
     protected $dates = [
