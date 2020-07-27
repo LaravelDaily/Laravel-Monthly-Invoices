@@ -2,87 +2,70 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Attendance;
+use Illuminate\View\View;
+use App\Services\AttendanceService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MassDestroyAttendanceRequest;
-use App\Http\Requests\StoreAttendanceRequest;
-use App\Http\Requests\UpdateAttendanceRequest;
 use App\Student;
-use Gate;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\Factory;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Class AttendanceController
+ * @package App\Http\Controllers\Admin
+ */
 class AttendanceController extends Controller
 {
+    /**
+     * @var AttendanceService
+     */
+    private $attendanceService;
+
+    /**
+     * AttendanceController constructor.
+     * @param AttendanceService $attendanceService
+     */
+    public function __construct(AttendanceService $attendanceService)
+    {
+        $this->attendanceService = $attendanceService;
+    }
+
+    /**
+     * @return Factory|RedirectResponse|View
+     */
     public function index()
     {
+        //don't let to navigate to future attendances
+        if (AttendanceService::isAttendanceDateGreaterThanCurrentMonth()) {
+            return redirect()->route('admin.attendances.redirect');
+        }
+
         abort_if(Gate::denies('attendance_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $attendances = Attendance::all();
+        $students    = Student::all();
+        $attendances = $this->attendanceService->getAttendances();
 
-        return view('admin.attendances.index', compact('attendances'));
+        return view('admin.attendances.index', compact('attendances', 'students'));
     }
 
-    public function create()
+    /**
+     * @return RedirectResponse
+     */
+    public function store()
     {
-        abort_if(Gate::denies('attendance_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $year  = request()->segment(3);
+        $month = request()->segment(4);
 
-        $students = Student::all()->pluck('first_name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $attendances = array_filter(request()->all(), function ($key) {
+            return strpos($key, 'student_') === 0;
+        }, ARRAY_FILTER_USE_KEY);
 
-        return view('admin.attendances.create', compact('students'));
-    }
+        $this->attendanceService->storeAttendances($year, $month, $attendances);
 
-    public function store(StoreAttendanceRequest $request)
-    {
-        $attendance = Attendance::create($request->all());
-
-        return redirect()->route('admin.attendances.index');
-
-    }
-
-    public function edit(Attendance $attendance)
-    {
-        abort_if(Gate::denies('attendance_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $students = Student::all()->pluck('first_name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $attendance->load('student');
-
-        return view('admin.attendances.edit', compact('students', 'attendance'));
-    }
-
-    public function update(UpdateAttendanceRequest $request, Attendance $attendance)
-    {
-        $attendance->update($request->all());
-
-        return redirect()->route('admin.attendances.index');
-
-    }
-
-    public function show(Attendance $attendance)
-    {
-        abort_if(Gate::denies('attendance_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $attendance->load('student');
-
-        return view('admin.attendances.show', compact('attendance'));
-    }
-
-    public function destroy(Attendance $attendance)
-    {
-        abort_if(Gate::denies('attendance_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $attendance->delete();
-
-        return back();
-
-    }
-
-    public function massDestroy(MassDestroyAttendanceRequest $request)
-    {
-        Attendance::whereIn('id', request('ids'))->delete();
-
-        return response(null, Response::HTTP_NO_CONTENT);
-
+        return redirect()->route('admin.attendances.index', [
+            'year'  => $year,
+            'month' => $month,
+        ]);
     }
 }

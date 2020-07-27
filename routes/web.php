@@ -31,8 +31,20 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::resource('students', 'StudentsController');
 
     // Attendances
-    Route::delete('attendances/destroy', 'AttendanceController@massDestroy')->name('attendances.massDestroy');
-    Route::resource('attendances', 'AttendanceController');
+    Route::get('attendances/{year}/{month}', 'AttendanceController@index')
+        ->where('year', '20(19|20)')
+        ->where('month', '(1[0-2]|0?[1-9])')
+        ->name('attendances.index');
+
+    //default redirection to current month and redirect if fail above route rules
+    Route::get('attendances/{year?}/{month?}', function () {
+        return redirect()->route('admin.attendances.index', ['year' => now()->year, 'month' => now()->format('m')]);
+    })->name('attendances.redirect');
+
+    Route::post('attendances/{year}/{month}', 'AttendanceController@store')
+        ->where('year', '20(19|20)')
+        ->where('month', '(1[0-2]|0?[1-9])')
+        ->name('attendances.store');
 
     // Invoices
     Route::delete('invoices/destroy', 'InvoicesController@massDestroy')->name('invoices.massDestroy');
