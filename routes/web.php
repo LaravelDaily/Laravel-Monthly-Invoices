@@ -50,6 +50,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::delete('invoices/destroy', 'InvoicesController@massDestroy')->name('invoices.massDestroy');
     Route::resource('invoices', 'InvoicesController');
     Route::put('invoices/{invoice}/toggle-paid', 'InvoicesController@togglePaid')->name('invoices.togglePaid');
+    Route::post('invoices/{invoice}/resend', 'InvoicesController@resend')->name('invoices.resend');
 
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'Auth', 'middleware' => ['auth']], function () {

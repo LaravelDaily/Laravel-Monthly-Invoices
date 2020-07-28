@@ -7,9 +7,11 @@ use App\Http\Requests\MassDestroyInvoiceRequest;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Invoice;
+use App\Notifications\MonthlyMemberNotification;
 use App\Student;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoicesController extends Controller
@@ -94,6 +96,15 @@ class InvoicesController extends Controller
 
         $invoice->paid_at = $paidAt;
         $invoice->save();
+
+        return redirect()->back();
+    }
+
+    public function resend(Invoice $invoice)
+    {
+        $student = $invoice->student;
+
+        Notification::route('mail', $student->email)->notify(new MonthlyMemberNotification($student, $invoice));
 
         return redirect()->back();
     }
