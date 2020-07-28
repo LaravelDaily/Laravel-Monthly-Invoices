@@ -134,6 +134,10 @@ class PermissionsTableSeeder extends Seeder
             ],
             [
                 'id'    => '32',
+                'title' => 'invoice_toggle_paid',
+            ],
+            [
+                'id'    => '33',
                 'title' => 'profile_password_edit',
             ],
         ];

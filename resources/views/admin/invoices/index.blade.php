@@ -96,6 +96,17 @@
                                     </form>
                                 @endcan
 
+                                @can('invoice_toggle_paid')
+                                    <form action="{{ route('admin.invoices.togglePaid', $invoice->id) }}" method="POST" style="display: inline-block;">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <input
+                                            type="submit"
+                                            class="btn btn-xs {{ ($invoice->paid_at) ? 'btn-warning' : 'btn-success'}}"
+                                            value="{{ ($invoice->paid_at) ? 'Mark as unpaid' : 'Mark as paid' }}"
+                                        >
+                                    </form>
+                                @endcan
                             </td>
 
                         </tr>

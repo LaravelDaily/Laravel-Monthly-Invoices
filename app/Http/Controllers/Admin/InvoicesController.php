@@ -85,4 +85,16 @@ class InvoicesController extends Controller
         return response(null, Response::HTTP_NO_CONTENT);
 
     }
+
+    public function togglePaid(Invoice $invoice)
+    {
+        abort_if(Gate::denies('invoice_toggle_paid'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $paidAt = ($invoice->paid_at == null) ? now() : null;
+
+        $invoice->paid_at = $paidAt;
+        $invoice->save();
+
+        return redirect()->back();
+    }
 }

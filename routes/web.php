@@ -49,6 +49,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     // Invoices
     Route::delete('invoices/destroy', 'InvoicesController@massDestroy')->name('invoices.massDestroy');
     Route::resource('invoices', 'InvoicesController');
+    Route::put('invoices/{invoice}/toggle-paid', 'InvoicesController@togglePaid')->name('invoices.togglePaid');
 
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'Auth', 'middleware' => ['auth']], function () {
