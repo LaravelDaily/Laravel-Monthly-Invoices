@@ -26,7 +26,7 @@ class HomeController
 
         $unpaidInvoices = Invoice::with('student')
             ->whereNull('paid_at')
-            ->where('period_to', '<', now()->subMonths(2)->endOfMonth()->toDateString())
+            ->where('period_to', '<=', now()->subMonths(2)->endOfMonth()->toDateString())
             ->get();
 
         return view('home',compact('revenue', 'months', 'unpaidInvoices'));
