@@ -56,7 +56,7 @@ class SendInvoicesCommand extends Command
             ->whereHas('attendances', function ($q) use ($lastMonth) {
                 return $q->whereYear('event_date', $lastMonth->year)
                     ->whereMonth('event_date', $lastMonth->month);
-            }, '>', 0)
+            })
             ->withCount(['attendances' => function ($q) use ($lastMonth) {
                 return $q->whereYear('event_date', $lastMonth->year)
                     ->whereMonth('event_date', $lastMonth->month);
@@ -67,7 +67,8 @@ class SendInvoicesCommand extends Command
             'name' => 'Private Primary School',
         ]);
 
-        $invoiceNumber = $this->getLastInvoiceNumber() + 1;
+        $invoiceNumber          = $this->getLastInvoiceNumber() + 1;
+        $generatedInvoicesCount = 0;
 
         foreach ($students as $student) {
             $amountToPay = config('invoices.daily_rate') * $student->attendances_count;
@@ -103,7 +104,10 @@ class SendInvoicesCommand extends Command
             Notification::route('mail', $student->email)->notify(new MonthlyMemberNotification($student, $invoice));
 
             $invoiceNumber++;
+            $generatedInvoicesCount++;
         }
+
+        $this->info('Total invoices generated and sent: ' . $generatedInvoicesCount);
     }
 
     /**

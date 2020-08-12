@@ -64,7 +64,7 @@
             @endcan
             @can('attendance_access')
                 <li class="nav-item">
-                    <a href="{{ route("admin.attendances.index", ['year' => now()->year, 'month' => now()->month]) }}" class="nav-link {{ request()->is('admin/attendances') || request()->is('admin/attendances/*') ? 'active' : '' }}">
+                    <a href="{{ route("admin.attendances.index", ['year' => now()->year, 'month' => now()->format('m')]) }}" class="nav-link {{ request()->is('admin/attendances') || request()->is('admin/attendances/*') ? 'active' : '' }}">
                         <i class="fa-fw fas fa-cogs nav-icon">
 
                         </i>

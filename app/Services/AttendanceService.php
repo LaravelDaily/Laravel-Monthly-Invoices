@@ -51,59 +51,70 @@ class AttendanceService
     }
 
     /**
+     * @param int $year
+     * @param int $month
      * @return int
      */
-    public static function daysInMonth()
+    public function daysInMonth(int $year, int $month)
     {
-        return now()->setYear(Route::current()->parameters()['year'])
-            ->setMonth(Route::current()->parameters()['month'])
+        return now()->setYear($year)
+            ->setMonth($month)
             ->daysInMonth;
     }
 
     /**
+     * @param int $year
+     * @param int $month
      * @return array
      */
-    public static function getAttendancePaginationLinks()
+    public function getAttendancePaginationLinks(int $year, int $month)
     {
-        $routeYear   = Route::current()->parameters()['year'];
-        $routeMonth  = Route::current()->parameters()['month'];
-        $currentDate = now()->setYear($routeYear)->setMonth($routeMonth)->toImmutable();
+        $currentDate       = now()->setYear($year)->setMonth($month)->toImmutable();
+        $currentDateYear   = $currentDate->year;
+        $currentDateMonth  = $currentDate->format('m');
+        $previousDate      = $currentDate->subMonth();
+        $previousDateYear  = $previousDate->year;
+        $previousDateMonth = $previousDate->format('m');
+        $nextDate          = $currentDate->addMonth();
+        $nextDateYear      = $nextDate->year;
+        $nextDateMonth     = $nextDate->format('m');
 
         $dates = [
             [
-                'year'  => $currentDate->subMonth()->year,
-                'month' => $currentDate->subMonth()->format('m'),
+                'year'     => $previousDateYear,
+                'month'    => $previousDateMonth,
+                'fullName' => $this->getYearAndFullMonthName($previousDateYear, $previousDateMonth),
             ],
             [
-                'year'  => $currentDate->year,
-                'month' => $currentDate->format('m'),
+                'year'     => $currentDateYear,
+                'month'    => $currentDateMonth,
+                'fullName' => $this->getYearAndFullMonthName($currentDateYear, $currentDateMonth)
             ],
         ];
 
-        if ($routeYear < now()->year | ($routeYear == now()->year && $routeMonth < now()->month)) {
-            $dates[] =
-                [
-                    'year'  => $currentDate->addMonth()->year,
-                    'month' => $currentDate->addMonth()->format('m'),
-                ];
+        if ($year < now()->year | ($year == now()->year && $month < now()->month)) {
+            $dates[] = [
+                'year'     => $nextDateYear,
+                'month'    => $nextDateMonth,
+                'fullName' => $this->getYearAndFullMonthName($nextDateYear, $nextDateMonth)
+            ];
         }
 
         return $dates;
     }
 
     /**
+     * @param int $year
+     * @param int $month
      * @return bool
      */
-    public static function isAttendanceDateGreaterThanCurrentMonth()
+    public function isProvidedMonthGreaterThanCurrentMonth(int $year, int $month)
     {
-        $routeYear  = Route::current()->parameters()['year'];
-        $routeMonth = Route::current()->parameters()['month'];
-
-        if ($routeYear > now()->year) {
+        if ($year > now()->year) {
             return true;
         }
 
-        if ($routeYear == now()->year && $routeMonth > now()->month) {
+        if ($year == now()->year && $month > now()->month) {
             return true;
         }
 
@@ -111,24 +122,12 @@ class AttendanceService
     }
 
     /**
-     * @param $year
-     * @param $month
+     * @param int $year
+     * @param int $month
      * @return string
      */
-    public static function getYearAndFullMonthName($year, $month)
+    public function getYearAndFullMonthName(int $year, int $month)
     {
         return now()->setYear($year)->setMonth($month)->format('F Y');
-    }
-
-    /**
-     * @param $day
-     * @return string
-     */
-    public static function getYearAndMonth($day)
-    {
-        $routeYear  = Route::current()->parameters()['year'];
-        $routeMonth = Route::current()->parameters()['month'];
-
-        return now()->setYear($routeYear)->setMonth($routeMonth)->setDay($day)->format('Y-m-d');
     }
 }

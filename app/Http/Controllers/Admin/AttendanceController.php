@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 use App\Services\AttendanceService;
 use App\Http\Controllers\Controller;
@@ -36,17 +37,24 @@ class AttendanceController extends Controller
      */
     public function index()
     {
+        abort_if(Gate::denies('attendance_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $selectedYear  = Route::current()->parameters()['year'];
+        $selectedMonth = Route::current()->parameters()['month'];
+
         //don't let to navigate to future attendances
-        if (AttendanceService::isAttendanceDateGreaterThanCurrentMonth()) {
+        if ($this->attendanceService->isProvidedMonthGreaterThanCurrentMonth($selectedYear, $selectedMonth)) {
             return redirect()->route('admin.attendances.redirect');
         }
 
-        abort_if(Gate::denies('attendance_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $daysInMonth     = $this->attendanceService->daysInMonth($selectedYear, $selectedMonth);
+        $students        = Student::all();
+        $attendances     = $this->attendanceService->getAttendances();
+        $paginationLinks = $this->attendanceService->getAttendancePaginationLinks($selectedYear, $selectedMonth);
 
-        $students    = Student::all();
-        $attendances = $this->attendanceService->getAttendances();
-
-        return view('admin.attendances.index', compact('attendances', 'students'));
+        return view('admin.attendances.index', compact(
+            'attendances', 'students', 'paginationLinks', 'daysInMonth', 'selectedYear', 'selectedMonth'
+        ));
     }
 
     /**
@@ -66,6 +74,6 @@ class AttendanceController extends Controller
         return redirect()->route('admin.attendances.index', [
             'year'  => $year,
             'month' => $month,
-        ]);
+        ])->with('success', 'Attendances updated successfully.');
     }
 }
