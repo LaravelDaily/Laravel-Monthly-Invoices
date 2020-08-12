@@ -15,6 +15,6 @@ class StudentsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        factory(Student::class, 20)->create();
+        factory(Student::class, 10)->create();
     }
 }
